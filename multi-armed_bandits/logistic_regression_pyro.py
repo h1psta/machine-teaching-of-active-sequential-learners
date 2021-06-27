@@ -4,7 +4,7 @@ import pyro.infer
 import pyro.optim
 import pyro.distributions as dist
 import pyro.contrib
-
+import copy
 
 def logistic_regression_model(x, y, x_a0, x_a1, y_a0_vs_a1, M, beta, tau):
     # beta is preference observation "inverse temperature"
@@ -22,13 +22,15 @@ def logistic_regression_model(x, y, x_a0, x_a1, y_a0_vs_a1, M, beta, tau):
     )
     if y.size()[0] > 0:
         # direct observations
-        probs = x @ w_
-        pyro.sample("y", dist.Bernoulli(logits=probs), obs=y)
+        with pyro.plate("Ys", y.size()[0]):
+            probs = x @ w_
+            pyro.sample("y", dist.Bernoulli(logits=probs), obs=y)
     if y_a0_vs_a1.size()[0] > 0:
         # pairwise preference observations
-        prob_a0_vs_a1 = (x_a1 - x_a0) @ (beta_ * w_)
+        with pyro.plate("Ys", y_a0_vs_a1.size()[0]):
+            prob_a0_vs_a1 = (x_a1 - x_a0) @ (beta_ * w_)
 
-        pyro.sample("y_a0_vs_a1", dist.Bernoulli(logits=prob_a0_vs_a1), obs=y_a0_vs_a1)
+            pyro.sample("y_a0_vs_a1", dist.Bernoulli(logits=prob_a0_vs_a1), obs=y_a0_vs_a1)
 
     return w_, tau_, beta_
 
@@ -37,7 +39,7 @@ def fit_logistic_regression_lap(data, inits=None, learning_rate=0.01, max_iter=1
     assert not isinstance(data["tau_prior"], tuple)
     assert not isinstance(data["beta_prior"], tuple)
     optim = pyro.optim.SGD({"lr": learning_rate})
-    delta_guide = pyro.contrib.autoguide.AutoLaplaceApproximation(
+    delta_guide = pyro.infer.autoguide.AutoLaplaceApproximation(
         logistic_regression_model
     )
     svi = pyro.infer.SVI(
@@ -79,9 +81,11 @@ def fit_logistic_regression_lap(data, inits=None, learning_rate=0.01, max_iter=1
     # print(pyro.param("auto_loc"))
     # print(guide)
 
+
     res = {
-        "w_mean": pyro.param("auto_loc").detach().clone(),
-        "w_chol": pyro.param("auto_scale_tril").detach().clone(),
+        "posterior": copy.copy(guide.get_posterior()),
+        "w_mean": guide.loc.detach().clone(),
+        "w_chol": guide.scale_tril.detach().clone(),
     }
     assert not torch.any(torch.isnan(res["w_chol"]))
     assert not torch.any(torch.isnan(res["w_mean"]))

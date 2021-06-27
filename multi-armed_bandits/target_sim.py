@@ -21,7 +21,7 @@ from dependent_arms_bandits import logistic_regression_bandit
 # 4: run id
 arguments = sys.argv[1:]
 
-x_file = "simulation_studies/X_{}.npy".format(arguments[0])
+x_file = "/kyb/agpd/ailic/peltola/machine-teaching-of-active-sequential-learners/multi-armed_bandits/simulation_studies/X_{}.npy".format(arguments[0])
 
 torch.manual_seed(42)
 np.random.seed(42)
@@ -48,20 +48,21 @@ d_w = 8.0  # scaling factor for ground truth
 
 methods = [
     (
-        "(U)Look-Ahead | (AI)Mixture",
-        user_models_mix_obs.lookahead_irl_ts_avearms_mix_obs_naive,
-        ai_models_mix_obs.ts_lookahead_mix_obs,
-        mlrp.fit_logistic_regression_mixture_obs,
+       "(U)Theta | (AI)Vanilla",
+        user_models.theta_teach_vanilla,
+        ai_models.no_lookahead,
+        lrp.fit_logistic_regression,
         get_arm_with_thompson_sampling,
     ),
     (
-        "(U)Direct | (AI)Mixture",
-        user_models_mix_obs.no_lookahead_la_AI_model_mix_obs_ts_avearms_naive,
-        ai_models_mix_obs.ts_lookahead_mix_obs,
-        mlrp.fit_logistic_regression_mixture_obs,
+        "(U)Look-Ahead-Theta | (AI)Look-Ahead",
+        user_models.theta_teach_advanced,
+        ai_models.ts_lookahead,
+        lrp.fit_logistic_regression,
         get_arm_with_thompson_sampling,
     ),
     (
+    
         "(U)Direct | (AI)Vanilla",
         user_models.no_lookahead,
         ai_models.no_lookahead,
@@ -125,6 +126,7 @@ for rep in range(n_reps):
     print(x_arms.shape)
 
     task_params = {
+        "w" : w,
         "x_arms": x_arms,
         "reward_probs": reward_prob_matrix,
         "bc": bc,
@@ -167,7 +169,7 @@ for rep in range(n_reps):
 order_method = []
 
 with open(
-    "results/experiment_{}_{}_{}_{}.pickle".format(
+    "/kyb/agpd/ailic/peltola/machine-teaching-of-active-sequential-learners/multi-armed_bandits/results/experiment_{}_{}_{}_{}.pickle".format(
         arguments[0], n_customers, n_horizon, arguments[4]
     ),
     "wb",

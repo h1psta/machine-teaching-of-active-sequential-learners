@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, use
 from pylab import rcParams
 import ai_models
 import logistic_regression_pyro as lrp
@@ -126,8 +126,22 @@ def logistic_regression_bandit(
         # observe reward and user's action
         r = torch.bernoulli(reward_prob[j])
 
+        # maybe use partials?
+        def data_gen(user_action, meta):
+            return ai_model(
+                task_params,
+                draws[0 : (t+1 )],
+                torch.hstack([ user_actions[0 : (t )] , torch.tensor(user_action)]),
+                torch.hstack([direct_feedbacks[0 : (t )] , torch.tensor(meta["direct_feedback"])] ),
+                torch.hstack( [a0s[0 : (t)] , torch.tensor(meta.get("a0", -1) )]) ,
+                torch.hstack( [a1s[0 : (t)] , torch.tensor(meta.get("a1", -1) )]),
+                torch.vstack( [p_a0s[0 : (t),] , torch.tensor(meta.get("p_a0", -1) )]),
+                torch.vstack( [p_a1s[0 : (t),] , torch.tensor(meta.get("p_a1", -1) )]),
+                None,
+            )
+
         user_action, meta = user_model(
-            task_params, r, j, naive_data, t, lr_fit_user, debug=debug
+            task_params, r, j, naive_data, t, lr_fit_user, advanced_data = None, data_gen = data_gen, adv_lr_fit = lr_fit, debug=debug
         )
         # note: in addition to observing the action, we assume here that we get
         # some information about the user's process of coming up with the
@@ -157,7 +171,9 @@ def logistic_regression_bandit(
         else:
             P_tensor = P
         # update arms
-        data = ai_model(
+        
+        data = data_gen(user_action, meta)
+        '''ai_model(
             task_params,
             draws[0 : (t + 1)],
             user_actions[0 : (t + 1)],
@@ -167,7 +183,8 @@ def logistic_regression_bandit(
             p_a0s[0 : (t + 1),],
             p_a1s[0 : (t + 1),],
             P_tensor,
-        )
+        ) 
+        '''
         ti = time.process_time()
 
         lr_fit = ai_logreg_fun(data, lr_fit)

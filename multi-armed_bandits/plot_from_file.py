@@ -7,7 +7,7 @@ from matplotlib.font_manager import FontProperties
 
 # File Name
 arguments = sys.argv[1:]
-with open("results/{}.pickle".format(arguments[0]), "rb") as pickle_file:
+with open("/kyb/agpd/ailic/peltola/machine-teaching-of-active-sequential-learners/multi-armed_bandits/results/{}.pickle".format(arguments[0]), "rb") as pickle_file:
     rewards = pickle.load(pickle_file)
     _ = pickle.load(pickle_file)
     _ = pickle.load(pickle_file)
@@ -24,17 +24,17 @@ bc = 1.0
 
 
 methods = [
-    "(U)Look-Ahead | (AI)Mixture",
-    "(U)Direct | (AI)Mixture",
-    "(U)Direct | (AI)Vanilla",
-    "(U)Look-Ahead | (AI)Vanilla",
-    "(U)Direct | (AI)Look-Ahead",
-    "(U)Look-Ahead | (AI)Look-Ahead",
+    "(T) Planning, Theta-aimed  | (S)AL",
+    "(T) Advanced planning | (S) IRL+AI",
+    "(T) Honest | (S) AL",
+    "(T) Planning | (S) AL",
+    "(T) Honest | (S) IRL+AI",
+    "(T) Planning | (S) IRL+AI",
 ]
 
-colours = [0, 1, 2, 3, 4, 8]
+colours = [0, 1, 2, 3,4,8 ]
 
-claim_plots = {"C1": [2, 3, 5], "C2": ([4, 1], [5, 0])}
+claim_plots = {"C1": [0,2, 3], "C2": ([ 1,4, 5])}
 n_methods = len(methods)
 
 
@@ -107,7 +107,7 @@ for claim, mtds in claim_plots.items():
         plt.xlabel("Steps")
         plt.ylabel("Expected Cumulative Reward")
         # plt.tight_layout()
-        plt.savefig("results/claim_{}_{}.pdf".format(arguments[0], claim))
+        plt.savefig("/kyb/agpd/ailic/peltola/machine-teaching-of-active-sequential-learners/multi-armed_bandits/results/claim_{}_{}.png".format(arguments[0], claim))
         plt.close()
     else:
         plt.figure()
@@ -142,7 +142,7 @@ for claim, mtds in claim_plots.items():
         plt.legend(loc="upper left", frameon=False)
         plt.xlabel("Steps")
         plt.ylabel("Expected Cumulative Reward")
-        plt.savefig("results/claim_{}_{}.pdf".format(arguments[0], claim))
+        plt.savefig("/kyb/agpd/ailic/peltola/machine-teaching-of-active-sequential-learners/multi-armed_bandits/results/claim_{}_{}.png".format(arguments[0], claim))
         plt.close()
 
 for i, name in enumerate(methods):
@@ -159,5 +159,5 @@ plt.legend()
 plt.xlabel("Steps")
 plt.ylabel("Expected Cumulative Reward")
 
-plt.savefig("results/simulated_{}_{}_{}.pdf".format(arguments[0], n_arms, n_horizon))
+plt.savefig("/kyb/agpd/ailic/peltola/machine-teaching-of-active-sequential-learners/multi-armed_bandits/results/simulated_{}_{}_{}.png".format(arguments[0], n_arms, n_horizon))
 plt.close()

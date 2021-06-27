@@ -66,7 +66,7 @@ def ts_lookahead(
     p_a0s = p_a0s[pr,]
     p_a1s = p_a1s[pr,]
     if p_a0s.size()[0] > 0:
-        data["x_a0"] = p_a0s @ x_arms
+        data["x_a0"] = p_a0s @ x_arms # Andrej : datapoint is now a virtual arm, Y is preference among the 2 of them
         data["x_a1"] = p_a1s @ x_arms
         data["y_a0_vs_a1"] = user_actions[pr]
     return data
